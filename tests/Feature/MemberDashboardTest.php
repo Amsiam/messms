@@ -39,7 +39,7 @@ function dashboardMeal(Member $member, string $date, float $b, float $l, float $
     MealItem::create(['meal_id' => $meal->id, 'member_id' => $member->id, 'breakfast' => $b, 'lunch' => $l, 'dinner' => $d]);
 }
 
-it('shows balance, meals this month and total meals', function () {
+it('shows balance and this month\'s meals by default', function () {
     dashboardMeal($this->member, '2026-10-20', 1, 1, 1);   // last month
     dashboardMeal($this->member, '2026-11-02', 0.5, 1, 1); // this month
     dashboardMeal($this->member, '2026-11-10', 1, 0, 1);
@@ -50,8 +50,20 @@ it('shows balance, meals this month and total meals', function () {
     Livewire::test(MyMemberStats::class)
         ->assertSee('-250.50')
         ->assertSee('You owe the mess')
-        ->assertSee('4.5')   // this month
-        ->assertSee('7.5');  // all time
+        ->assertSee('November 2026')
+        ->assertSee('4.5')
+        ->assertDontSee('7.5');
+});
+
+it('counts meals for the month picked on the dashboard', function () {
+    dashboardMeal($this->member, '2026-10-01', 1, 1, 1);
+    dashboardMeal($this->member, '2026-10-31', 1, 0.5, 0);
+    dashboardMeal($this->member, '2026-11-02', 1, 1, 1);
+
+    Livewire::test(MyMemberStats::class, ['pageFilters' => ['month' => '2026-10']])
+        ->assertSee('October 2026')
+        ->assertSee('4.5')
+        ->assertDontSee('November 2026');
 });
 
 it('lists only the member\'s last 10 transactions, newest first', function () {
@@ -83,8 +95,8 @@ it('hides the widgets for a user without a member', function () {
     $this->get('/admin')->assertSuccessful();
 });
 
-it('renders the dashboard for a member user', function () {
-    $this->get('/admin')->assertSuccessful();
+it('renders the dashboard for a member user with the month picker', function () {
+    $this->get('/admin')->assertSuccessful()->assertSee('Meals for month');
 });
 
 it('shows admins every active member balance instead of personal widgets', function () {
@@ -100,7 +112,7 @@ it('shows admins every active member balance instead of personal widgets', funct
         ->assertSeeInOrder(['Karim', '120.00', 'Rahim', '-250.50'])
         ->assertDontSee('Gone');
 
-    $this->get('/admin')->assertSuccessful();
+    $this->get('/admin')->assertSuccessful()->assertDontSee('Meals for month');
 });
 
 it('hides the balances table from non-admins', function () {
