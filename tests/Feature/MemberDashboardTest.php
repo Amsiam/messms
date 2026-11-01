@@ -1,5 +1,6 @@
 <?php
 
+use App\Filament\Pages\Dashboard;
 use App\Filament\Widgets\MembersBalances;
 use App\Filament\Widgets\MyMemberStats;
 use App\Filament\Widgets\MyRecentTransactions;
@@ -117,4 +118,19 @@ it('shows admins every active member balance instead of personal widgets', funct
 
 it('hides the balances table from non-admins', function () {
     expect(MembersBalances::canView())->toBeFalse();
+});
+
+it('offers only months with the member\'s meals, plus the current one', function () {
+    dashboardMeal($this->member, '2026-08-05', 1, 1, 1);
+    dashboardMeal($this->member, '2026-08-20', 1, 1, 1);
+    dashboardMeal($this->member, '2026-10-01', 1, 1, 1);
+
+    $other = Member::create(['name' => 'Other', 'balance' => 0, 'join_date' => '2026-01-01']);
+    dashboardMeal($other, '2026-06-10', 1, 1, 1);
+
+    expect(Dashboard::monthOptions())->toBe([
+        '2026-11' => 'November 2026',
+        '2026-10' => 'October 2026',
+        '2026-08' => 'August 2026',
+    ]);
 });
