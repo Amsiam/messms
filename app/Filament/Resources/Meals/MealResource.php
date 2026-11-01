@@ -48,11 +48,13 @@ class MealResource extends Resource
 
     public static function shouldRegisterNavigation(): bool
     {
-        return auth()->user()?->hasRole('admin') || auth()->user()?->hasPermissionTo('manage_meals') ?? false;
+        // Users with manage_meals go through Meal Entries for admin approval.
+        return auth()->user()?->hasRole('admin') ?? false;
     }
 
     public static function canViewAny(): bool
     {
-        return auth()->user()?->hasRole('admin') || auth()->user()?->hasPermissionTo('manage_meals') ?? false;
+        // Users with manage_meals go through Meal Entries for admin approval.
+        return auth()->user()?->hasRole('admin') ?? false;
     }
 }

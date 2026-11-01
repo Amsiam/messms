@@ -22,6 +22,8 @@ it('renders every panel page', function (string $url) {
     '/admin/members',
     '/admin/meals',
     '/admin/meal-schedules',
+    '/admin/meal-requests',
+    '/admin/meal-requests/create',
     '/admin/expenses',
     '/admin/payments',
     '/admin/expense-requests',
