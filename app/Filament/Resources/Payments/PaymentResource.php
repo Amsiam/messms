@@ -48,7 +48,12 @@ class PaymentResource extends Resource
                     Select::make('type')->options([
                         'in' => 'In',
                         'out' => 'Out',
-                    ])->required()->default('out'),
+                    ])->required()->default('out')->live(),
+                    Select::make('deduct_from_member_id')
+                        ->label('Received by (deduct from)')
+                        ->helperText('Optional. The member, e.g. the manager, who took this money. The same amount is subtracted from their balance.')
+                        ->options(fn ($get) => Member::activeOrSelected()->except($get('member_id')))
+                        ->visible(fn ($get, string $operation) => $operation === 'create' && $get('type') === 'in'),
                 ])
                     ->columnSpanFull()
             ]);
