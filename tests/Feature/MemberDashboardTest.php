@@ -1,6 +1,5 @@
 <?php
 
-use App\Filament\Pages\Dashboard;
 use App\Filament\Widgets\MembersBalances;
 use App\Filament\Widgets\MyMemberStats;
 use App\Filament\Widgets\MyRecentTransactions;
@@ -61,10 +60,9 @@ it('counts meals for the month picked on the dashboard', function () {
     dashboardMeal($this->member, '2026-10-31', 1, 0.5, 0);
     dashboardMeal($this->member, '2026-11-02', 1, 1, 1);
 
-    Livewire::test(MyMemberStats::class, ['pageFilters' => ['month' => '2026-10']])
-        ->assertSee('October 2026')
-        ->assertSee('4.5')
-        ->assertDontSee('November 2026');
+    Livewire::test(MyMemberStats::class)
+        ->set('month', '2026-10')
+        ->assertSee('4.5');
 });
 
 it('lists only the member\'s last 10 transactions, newest first', function () {
@@ -96,8 +94,14 @@ it('hides the widgets for a user without a member', function () {
     $this->get('/admin')->assertSuccessful();
 });
 
-it('renders the dashboard for a member user with the month picker', function () {
-    $this->get('/admin')->assertSuccessful()->assertSee('Meals for month');
+it('renders the dashboard for a member user', function () {
+    $this->get('/admin')->assertSuccessful();
+});
+
+it('puts the month picker inside the meal card', function () {
+    Livewire::test(MyMemberStats::class)
+        ->assertSeeHtml('wire:model.live="month"')
+        ->assertSeeHtml('<option value="2026-11">November 2026</option>');
 });
 
 it('shows admins every active member balance instead of personal widgets', function () {
@@ -113,7 +117,7 @@ it('shows admins every active member balance instead of personal widgets', funct
         ->assertSeeInOrder(['Karim', '120.00', 'Rahim', '-250.50'])
         ->assertDontSee('Gone');
 
-    $this->get('/admin')->assertSuccessful()->assertDontSee('Meals for month');
+    $this->get('/admin')->assertSuccessful();
 });
 
 it('hides the balances table from non-admins', function () {
@@ -128,7 +132,7 @@ it('offers only months with the member\'s meals, plus the current one', function
     $other = Member::create(['name' => 'Other', 'balance' => 0, 'join_date' => '2026-01-01']);
     dashboardMeal($other, '2026-06-10', 1, 1, 1);
 
-    expect(Dashboard::monthOptions())->toBe([
+    expect(MyMemberStats::monthOptions($this->member))->toBe([
         '2026-11' => 'November 2026',
         '2026-10' => 'October 2026',
         '2026-08' => 'August 2026',
